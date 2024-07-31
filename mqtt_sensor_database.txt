@@ -1,0 +1,44 @@
+-- Set initial SQL modes and settings
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- Create the schema if it does not exist
+CREATE SCHEMA IF NOT EXISTS `mqtt_sensor_database` DEFAULT CHARACTER SET utf8;
+USE `mqtt_sensor_database`;
+
+-- Dimension Table for sensors
+CREATE TABLE sensor_dim (
+    sensor_id VARCHAR(255) PRIMARY KEY,
+    device_id VARCHAR(255) NOT NULL,
+    device_name VARCHAR(255) NOT NULL,
+    sensor_description VARCHAR(255) NOT NULL,
+    device_unit VARCHAR(255) NOT NULL
+);
+
+-- Dimension Table for dates
+CREATE TABLE date_dim (
+    timestamp DATETIME(6) PRIMARY KEY,  -- DATETIME(6) for microsecond precision
+    year INT NOT NULL,
+    month INT NOT NULL,
+    iso_week INT NOT NULL,
+    day INT NOT NULL,
+    hour INT NOT NULL,
+    minute INT NOT NULL,
+    second INT NOT NULL,
+    microsecond INT NOT NULL
+);
+
+-- Fact Table for sensor data
+CREATE TABLE sensor_data (
+    timestamp DATETIME(6) NOT NULL,  -- DATETIME(6) for microsecond precision
+    sensor_id VARCHAR(255) NOT NULL,
+    sensor_value FLOAT NOT NULL,
+    FOREIGN KEY (sensor_id) REFERENCES sensor_dim(sensor_id),
+    FOREIGN KEY (timestamp) REFERENCES date_dim(timestamp)
+);
+
+-- Reset the SQL modes and settings
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
